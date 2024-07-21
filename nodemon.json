@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "node_modules"],
+  "ext": "ts,js,json",
+  "exec": "npm run serve-offline",
+  "delay": "500"
+}

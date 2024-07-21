@@ -1,0 +1,48 @@
+service: govlogistic-api
+
+stages:
+  prd:
+    region: ap-southeast-1
+    environment: prd
+    profile: govlogistic-prd
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-southeast-1
+
+functions:
+  govlogistic-api:
+    handler: dist/index.handler
+    events:
+      - http: ANY /
+      - http: ANY /{proxy+}
+
+package: 
+  individually: true
+  exclude:
+    - .gitignore
+    - .git/**
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-plugin-tracing
+
+tracing:
+  lambda: true
+  apiGateway: true
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    noPrependStageInUrl: true
+
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ['aws-sdk']
+    target: 'node20'
+    platform: 'node'
+    concurrency: 10
