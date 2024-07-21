@@ -7,6 +7,7 @@ import {
   registerValidation,
   superAdminValidation,
 } from "../../middlewares/validations/authValidation";
+import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.post(
   requestValidation,
   asyncHandler(register)
 );
-router.get("/verify", requestValidation, asyncHandler(verify));
+router.get("/verify", requestValidation, tokenAndRoleHandler, asyncHandler(verify));
 router.get("/", (req, res) => {
   res.json({ message: "Hello World Auth Modules" });
 });

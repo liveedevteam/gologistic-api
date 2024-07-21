@@ -3,9 +3,14 @@ import mongoose from "mongoose";
 const shippingPlanSchema = new mongoose.Schema(
   {
     shippingOrder: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "ShippingOrders",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ShippingOrders",
+      required: true,
+    },
+    planningNumber: {
+      type: String,
+      required: true,
+      unique: true,
     },
     routeStart: {
       type: String,
@@ -54,6 +59,7 @@ const shippingPlanSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "active",
+      enum: ["open", "close"],
     },
     createdAt: {
       type: Date,

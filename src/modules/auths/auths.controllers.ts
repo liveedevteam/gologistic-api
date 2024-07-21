@@ -25,7 +25,10 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const verify = async (req: Request, res: Response) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  const decoded = await verifyTokenService(token as string);
-  return res.status(200).json(decoded);
+  console.log(`req.user`, req.user);
+  const { email, role } = req.user;
+  if (!email || !role) {
+    throw new Error("Unauthorized");
+  }
+  return res.status(200).json({ email, role });
 };

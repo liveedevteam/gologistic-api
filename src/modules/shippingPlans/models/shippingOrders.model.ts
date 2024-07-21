@@ -3,9 +3,13 @@ import mongoose from "mongoose";
 const shippingOrderSchema = new mongoose.Schema(
   {
     name: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ShippingPlan",
+      type: String,
       required: true,
+    },
+    orderNumber: {
+      type: String,
+      required: true,
+      unique: true,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -14,7 +18,15 @@ const shippingOrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: "active",
+      default: "todo",
+      enum: [
+        "todo",
+        "in-progress",
+        "completed",
+        "cancelled",
+        "returned",
+        "delivered",
+      ],
     },
     createdAt: {
       type: Date,
