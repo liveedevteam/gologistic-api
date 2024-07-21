@@ -1,8 +1,16 @@
 import User from "../models/users.model";
 
-export const createUserService = async (data: any) => {
+export const createUserService = async (
+  name: string,
+  department: string,
+  authId: string
+) => {
   try {
-    const user = new User(data);
+    const user = new User({
+      name,
+      department,
+      auth: authId,
+    });
     await user.save();
     return user;
   } catch (error) {

@@ -31,6 +31,16 @@ export const registerValidation = [
     .isEmpty()
     .isIn(["admin", "user"])
     .withMessage("Name is required"),
+  check("name")
+    .notEmpty()
+    .withMessage("Name is required")
+    .isString()
+    .withMessage("Name must be a string"),
+  check("department")
+    .notEmpty()
+    .withMessage("Department is required")
+    .isString()
+    .withMessage("Department must be a string"),
 ];
 
 export const superAdminValidation = [

@@ -1,6 +1,15 @@
 import mongoose from "mongoose";
 
-const authsSchema = new mongoose.Schema({
+export interface IAuthsDocument extends mongoose.Document {
+  _id: string;
+  email: string;
+  password: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const authsSchema = new mongoose.Schema<IAuthsDocument>({
   email: {
     type: String,
     required: true,

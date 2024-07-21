@@ -1,6 +1,7 @@
 import dayjs from "../../../utils/dayjs";
 import AppError from "../../../utils/errors/appError";
-import Auths from "../models/auths.model";
+import { createUserService } from "../../users/services/users.services";
+import Auths, { IAuthsDocument } from "../models/auths.model";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 
@@ -39,7 +40,9 @@ export const loginService = async (email: string, password: string) => {
 export const registerService = async (
   email: string,
   password: string,
-  role: string
+  role: string,
+  name: string,
+  department: string
 ) => {
   try {
     const authDoc = await Auths.findOne({ email });
@@ -47,9 +50,21 @@ export const registerService = async (
       throw new AppError("Email already exists", 400);
     }
     const encodedPassword = bcrypt.hashSync(password, 10);
-    const auth = new Auths({ email, password: encodedPassword, role });
+    const auth = new Auths({
+      email,
+      password: encodedPassword,
+      role,
+    }) as IAuthsDocument;
     await auth.save();
-    return auth;
+    if (!auth) {
+      throw new AppError("Failed to create auth", 500);
+    }
+    const authId = auth._id;
+    const user = await createUserService(name, department, authId);
+    return {
+      auth,
+      user,
+    };
   } catch (error: any) {
     if (error instanceof AppError) {
       throw error;
@@ -65,4 +80,4 @@ export const verifyTokenService = async (token: string) => {
   } catch (error: any) {
     throw new AppError(error.message, 401);
   }
-}
+};

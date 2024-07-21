@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { loginService, registerService, verifyTokenService } from "./services/auths.services";
+import {
+  loginService,
+  registerService,
+  verifyTokenService,
+} from "./services/auths.services";
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -9,10 +13,13 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const register = async (req: Request, res: Response) => {
+  const { name, department, email, password, role } = req.body;
   const register = await registerService(
-    req.body.email,
-    req.body.password,
-    req.body.role
+    email,
+    password,
+    role,
+    name,
+    department
   );
   return res.status(201).json(register);
 };
