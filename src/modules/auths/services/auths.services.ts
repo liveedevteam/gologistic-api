@@ -61,9 +61,15 @@ export const registerService = async (
     }
     const authId = auth._id;
     const user = await createUserService(name, department, authId);
+    const userObj = user.toObject();
+    const authObj = auth.toObject();
+    delete authObj.password;
     return {
-      auth,
-      user,
+      message: "User created successfully",
+      result: {
+        user: userObj,
+        auth: authObj,
+      },
     };
   } catch (error: any) {
     if (error instanceof AppError) {
