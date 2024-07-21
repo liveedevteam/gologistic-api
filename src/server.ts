@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import { authsRouter } from "./modules/auths/auths.routes";
+import { usersRouter } from "./modules/users/users.routes";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 
 import "express-async-errors";
@@ -8,12 +9,12 @@ import AppError from "./utils/errors/appError";
 import connectDb from "./utils/db/connectDb";
 
 export default async (app: any) => {
-
   connectDb();
 
   app.use(express.json());
 
   app.use("/api/auths", authsRouter);
+  app.use("/api/users", usersRouter);
 
   app.get("/", (req: Request, res: Response) => {
     res.json({ message: "Home V" + process.env.VERSION });
