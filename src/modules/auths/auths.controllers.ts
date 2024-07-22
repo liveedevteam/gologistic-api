@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import {
   loginService,
   registerService,
-  verifyTokenService,
 } from "./services/auths.services";
 
 export const login = async (req: Request, res: Response) => {
