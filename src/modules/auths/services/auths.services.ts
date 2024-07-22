@@ -2,7 +2,7 @@ import dayjs from "../../../utils/dayjs";
 import AppError from "../../../utils/errors/appError";
 import { createUserService } from "../../users/services/users.services";
 import Auths, { IAuthsDocument } from "../models/auths.model";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 
 export const loginService = async (email: string, password: string) => {
