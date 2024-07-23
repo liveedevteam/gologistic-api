@@ -134,6 +134,24 @@
                       "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/govlogistic-api-dev*:*:*"
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "xray:PutTraceSegments",
+                    "xray:PutTelemetryRecords"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "xray:PutTraceSegments",
+                    "xray:PutTelemetryRecords"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
                 }
               ]
             }
@@ -169,6 +187,9 @@
         "FunctionName": "govlogistic-api-dev-govlogistic-api",
         "MemorySize": 1024,
         "Timeout": 6,
+        "TracingConfig": {
+          "Mode": "PassThrough"
+        },
         "Environment": {
           "Variables": {
             "VERSION": "1.0.0",
@@ -186,9 +207,6 @@
             "IamRoleLambdaExecution",
             "Arn"
           ]
-        },
-        "TracingConfig": {
-          "Mode": "PassThrough"
         }
       },
       "DependsOn": [

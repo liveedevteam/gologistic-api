@@ -8,6 +8,20 @@
       "name": "aws",
       "runtime": "nodejs20.x",
       "region": "ap-southeast-1",
+      "tracing": {
+        "lambda": true,
+        "apiGateway": true
+      },
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords"
+          ],
+          "Resource": "*"
+        }
+      ],
       "stage": "dev",
       "versionFunctions": true,
       "environment": {
@@ -156,6 +170,19 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/govlogistic-api-dev*:*:*"
                           }
                         ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "xray:PutTraceSegments",
+                          "xray:PutTelemetryRecords"
+                        ],
+                        "Resource": [
+                          "*"
+                        ]
                       }
                     ]
                   }
@@ -191,6 +218,9 @@
               "FunctionName": "govlogistic-api-dev-govlogistic-api",
               "MemorySize": 1024,
               "Timeout": 6,
+              "TracingConfig": {
+                "Mode": "PassThrough"
+              },
               "Environment": {
                 "Variables": {
                   "VERSION": "1.0.0",
@@ -208,9 +238,6 @@
                   "IamRoleLambdaExecution",
                   "Arn"
                 ]
-              },
-              "TracingConfig": {
-                "Mode": "PassThrough"
               }
             },
             "DependsOn": [
@@ -603,10 +630,6 @@
       },
       "plugins": {
         "$ref": "$[\"service\"][\"plugins\"]"
-      },
-      "tracing": {
-        "lambda": true,
-        "apiGateway": true
       },
       "custom": {
         "$ref": "$[\"service\"][\"custom\"]"

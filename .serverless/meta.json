@@ -22,6 +22,20 @@
         "name": "aws",
         "runtime": "nodejs20.x",
         "region": "ap-southeast-1",
+        "tracing": {
+          "lambda": true,
+          "apiGateway": true
+        },
+        "iamRoleStatements": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "xray:PutTraceSegments",
+              "xray:PutTelemetryRecords"
+            ],
+            "Resource": "*"
+          }
+        ],
         "stage": "dev",
         "versionFunctions": true,
         "environment": {
@@ -170,6 +184,24 @@
                               "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/govlogistic-api-dev*:*:*"
                             }
                           ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "xray:PutTraceSegments",
+                            "xray:PutTelemetryRecords"
+                          ],
+                          "Resource": "*"
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "xray:PutTraceSegments",
+                            "xray:PutTelemetryRecords"
+                          ],
+                          "Resource": [
+                            "*"
+                          ]
                         }
                       ]
                     }
@@ -205,6 +237,9 @@
                 "FunctionName": "govlogistic-api-dev-govlogistic-api",
                 "MemorySize": 1024,
                 "Timeout": 6,
+                "TracingConfig": {
+                  "Mode": "PassThrough"
+                },
                 "Environment": {
                   "Variables": {
                     "VERSION": "1.0.0",
@@ -222,9 +257,6 @@
                     "IamRoleLambdaExecution",
                     "Arn"
                   ]
-                },
-                "TracingConfig": {
-                  "Mode": "PassThrough"
                 }
               },
               "DependsOn": [
@@ -580,10 +612,6 @@
         "serverless-dotenv-plugin",
         "serverless-plugin-tracing"
       ],
-      "tracing": {
-        "lambda": true,
-        "apiGateway": true
-      },
       "custom": {
         "serverless-offline": {
           "httpPort": 3001,
@@ -602,7 +630,7 @@
         }
       }
     },
-    "serviceRawFile": "service: govlogistic-api\r\n\r\nstages:\r\n  prd:\r\n    region: ap-southeast-1\r\n    environment: prd\r\n    profile: govlogistic-prd\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: ap-southeast-1\r\n\r\nfunctions:\r\n  govlogistic-api:\r\n    handler: dist/index.handler\r\n    events:\r\n      - http: ANY /\r\n      - http: ANY /{proxy+}\r\n\r\npackage: \r\n  individually: true\r\n  exclude:\r\n    - .gitignore\r\n    - .git/**\r\n\r\nplugins:\r\n  - serverless-offline\r\n  - serverless-dotenv-plugin\r\n  - serverless-plugin-tracing\r\n\r\ntracing:\r\n  lambda: true\r\n  apiGateway: true\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 3001\r\n    noPrependStageInUrl: true\r\n\r\n  esbuild:\r\n    bundle: true\r\n    minify: false\r\n    sourcemap: true\r\n    exclude: ['aws-sdk']\r\n    target: 'node20'\r\n    platform: 'node'\r\n    concurrency: 10\r\n",
+    "serviceRawFile": "service: govlogistic-api\r\n\r\nstages:\r\n  prd:\r\n    region: ap-southeast-1\r\n    environment: prd\r\n    profile: govlogistic-prd\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: ap-southeast-1\r\n  tracing:\r\n    lambda: true\r\n    apiGateway: true\r\n  iamRoleStatements:\r\n    - Effect: \"Allow\"\r\n      Action:\r\n        - \"xray:PutTraceSegments\"\r\n        - \"xray:PutTelemetryRecords\"\r\n      Resource: \"*\"\r\n\r\nfunctions:\r\n  govlogistic-api:\r\n    handler: dist/index.handler\r\n    events:\r\n      - http: ANY /\r\n      - http: ANY /{proxy+}\r\n\r\npackage: \r\n  individually: true\r\n  exclude:\r\n    - .gitignore\r\n    - .git/**\r\n\r\nplugins:\r\n  - serverless-offline\r\n  - serverless-dotenv-plugin\r\n  - serverless-plugin-tracing\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 3001\r\n    noPrependStageInUrl: true\r\n\r\n  esbuild:\r\n    bundle: true\r\n    minify: false\r\n    sourcemap: true\r\n    exclude: ['aws-sdk']\r\n    target: 'node20'\r\n    platform: 'node'\r\n    concurrency: 10\r\n",
     "command": [
       "deploy"
     ],
