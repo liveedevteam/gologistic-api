@@ -4,7 +4,7 @@ const shippingPlanSchema = new mongoose.Schema(
   {
     shippingOrder: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ShippingOrders",
+      ref: "ShippingOrder",
       required: true,
     },
     planningNumber: {

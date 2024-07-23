@@ -22,3 +22,13 @@ export const createShippingOrderService = async (
     throw new AppError(error.message, 500);
   }
 };
+
+export const getShippingOrdersService = async (page: number, limit: number) => {
+  try {
+    return await ShippingOrder.find({})
+      .skip((page - 1) * limit)
+      .limit(limit);
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
+};

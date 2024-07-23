@@ -6,7 +6,10 @@ import {
   getShippingPlansService,
   updateShippingPlanService,
 } from "./services/shippingPlans.services";
-import { createShippingOrderService } from "./services/shippingOrders.services";
+import {
+  createShippingOrderService,
+  getShippingOrdersService,
+} from "./services/shippingOrders.services";
 import AppError from "../../utils/errors/appError";
 
 export const createShippingOrder = async (req: Request, res: Response) => {
@@ -64,8 +67,17 @@ export const createShippingPlan = async (req: Request, res: Response) => {
 };
 
 export const getShippingPlans = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const shippingPlans = await getShippingPlansService();
+  const { page, limit } = req.query;
+  if (!page || !limit) {
+    throw new AppError("Page and limit query params are required", 400);
+  }
+  if (typeof page !== "string" || typeof limit !== "string") {
+    throw new AppError("Page and limit query params must be a string", 400);
+  }
+  const shippingPlans = await getShippingPlansService(
+    Number(page),
+    Number(limit)
+  );
   return res.status(200).json(shippingPlans);
 };
 
@@ -88,7 +100,10 @@ export const updateShippingPlan = async (req: Request, res: Response) => {
     length,
     isActive,
   } = req.body;
-  const shippingPlan = await updateShippingPlanService();
+  const shippingPlan = await updateShippingPlanService({
+    id,
+    ...req.body,
+  });
   return res.status(200).json(shippingPlan);
 };
 
@@ -96,4 +111,21 @@ export const deleteShippingPlan = async (req: Request, res: Response) => {
   const { id } = req.params;
   await deleteShippingPlanService(id);
   return res.status(204).json();
+};
+
+export const getShippingOrders = async (req: Request, res: Response) => {
+  const { page, limit } = req.query;
+  if (!page || !limit) {
+    throw new AppError("Page and limit query params are required", 400);
+  }
+
+  if (typeof page !== "string" || typeof limit !== "string") {
+    throw new AppError("Page and limit query params must be a string", 400);
+  }
+
+  const shippingOrders = await getShippingOrdersService(
+    Number(page),
+    Number(limit)
+  );
+  return res.status(200).json(shippingOrders);
 };

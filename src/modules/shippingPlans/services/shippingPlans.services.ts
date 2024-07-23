@@ -36,27 +36,65 @@ export const createShippingPlanService = async (
     planningNumber,
     status,
   });
-  await newShippingPlan.save();
-  return {
-    message: "createShippingPlanService",
-    result: newShippingPlan,
-  };
+  try {
+    await newShippingPlan.save();
+    return {
+      message: "createShippingPlanService",
+      result: newShippingPlan,
+    };
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
 };
 
-export const getShippingPlansService = async () => {
-  return { message: "getShippingPlansService" };
+export const getShippingPlansService = async (page: number, limit: number) => {
+  try {
+    return {
+      message: "getShippingPlansService",
+      result: await ShippingPlan.find({}).skip((page - 1) * limit),
+    };
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
 };
 
 export const getShippingPlanServiceById = async (id: string) => {
-  return { message: "getShippingPlanService" };
+  try {
+    return {
+      message: "getShippingPlan by ID Service",
+      result: await ShippingPlan.findById(id),
+    };
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
 };
 
-export const updateShippingPlanService = async () => {
-  return { message: "updateShippingPlanService" };
+export const updateShippingPlanService = async (data: any) => {
+  const { id, ...updateData } = data;
+  try {
+    const shippingPlan = await ShippingPlan.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      updateData,
+      { new: true }
+    );
+    return {
+      message: "updateShippingPlanService",
+      result: shippingPlan,
+    };
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
 };
 
 export const deleteShippingPlanService = async (id: string) => {
-  return { message: "deleteShippingPlanService" };
+  try {
+    await ShippingPlan.findByIdAndDelete(id);
+    return { message: "deleteShippingPlanService" };
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
 };
 
 export const getShippingOrderServiceById = async (id: string) => {
