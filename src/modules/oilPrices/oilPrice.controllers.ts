@@ -49,7 +49,7 @@ export const uploadOilPriceDataFromExcel = async (
       return {
         type: type,
         key: item["NewKey"] || "",
-        startPoing: item[" StartPoint"] || "",
+        startPoint: item["StartPoint"] || "",
         startGps: item["StartGPS"] || "",
         stopPoint: item["StopPoint"] || "",
         stopGps: item["StopGPS"] || "",
