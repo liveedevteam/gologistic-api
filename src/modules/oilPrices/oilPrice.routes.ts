@@ -1,6 +1,9 @@
 import { Router } from "express";
 
-import { uploadOilPriceDataFromExcel } from "./oilPrice.controllers";
+import {
+  getOilPriceData,
+  uploadOilPriceDataFromExcel,
+} from "./oilPrice.controllers";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import { uploadMiddleware } from "../../utils/uploads/multer";
@@ -14,6 +17,13 @@ router.post(
   requestValidation,
   uploadMiddleware.single("file"),
   asyncHandler(uploadOilPriceDataFromExcel)
+);
+
+router.get(
+  "/",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(getOilPriceData)
 );
 
 const oilPriceRouter = router;

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { uploadStdDataFromXlsx } from "./std.controllers";
+import { getStdData, uploadStdDataFromXlsx } from "./std.controllers";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import asyncHandler from "../../utils/errors/asyncHandler";
@@ -13,6 +13,13 @@ router.post(
   requestValidation,
   uploadMiddleware.single("file"),
   asyncHandler(uploadStdDataFromXlsx)
+);
+
+router.get(
+  "/",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(getStdData)
 );
 
 const stdsRouter = router;

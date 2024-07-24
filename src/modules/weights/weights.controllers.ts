@@ -73,3 +73,24 @@ export const uploadWeightDataFromXlsx = async (req: Request, res: Response) => {
     result: dataForSave,
   });
 };
+
+export const getWeightData = async (req: Request, res: Response) => {
+  const { page, limit } = req.query;
+  if (!page || !limit) {
+    throw new AppError("Missing page or limit", 400);
+  }
+
+  const weights = await Weight.find()
+    .limit(parseInt(limit as string))
+    .skip((parseInt(page as string) - 1) * parseInt(limit as string));
+
+  const total = await Weight.countDocuments();
+
+  res.status(200).json({
+    message: "success",
+    total,
+    totalPerPage: parseInt(limit as string),
+    currentPage: parseInt(page as string),
+    data: weights,
+  });
+};

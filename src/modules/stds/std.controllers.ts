@@ -27,7 +27,28 @@ export const uploadStdDataFromXlsx = async (req: Request, res: Response) => {
   const stds = await Std.insertMany(dataForSave);
 
   res.status(201).json({
-    status: "success",
+    message: "success",
+    data: stds,
+  });
+};
+
+export const getStdData = async (req: Request, res: Response) => {
+  const { page, limit } = req.query;
+  if (!page || !limit) {
+    throw new AppError("Missing page or limit", 400);
+  }
+
+  const stds = await Std.find()
+    .limit(parseInt(limit as string))
+    .skip((parseInt(page as string) - 1) * parseInt(limit as string));
+
+  const total = await Std.countDocuments();
+
+  res.status(200).json({
+    message: "success",
+    total,
+    totalPerPage: parseInt(limit as string),
+    currentPage: parseInt(page as string),
     data: stds,
   });
 };

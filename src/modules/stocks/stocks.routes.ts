@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { uploadStockDataFromXlsx } from "./stocks.controllers";
+import { getStockData, uploadStockDataFromXlsx } from "./stocks.controllers";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import asyncHandler from "../../utils/errors/asyncHandler";
@@ -14,6 +14,13 @@ router.post(
   requestValidation,
   uploadMiddleware.single("file"),
   asyncHandler(uploadStockDataFromXlsx)
+);
+
+router.get(
+  "/",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(getStockData)
 );
 
 const stocksRouter = router;

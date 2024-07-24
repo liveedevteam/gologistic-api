@@ -77,7 +77,28 @@ export const uploadOilPriceDataFromExcel = async (
   const oilPrices = await OilPrice.insertMany(dataForSave);
 
   res.status(201).json({
-    status: "success",
+    message: "success",
+    data: oilPrices,
+  });
+};
+
+export const getOilPriceData = async (req: Request, res: Response) => {
+  const { page, limit } = req.query;
+  if (!page || !limit) {
+    throw new AppError("Please provide page and limit query params", 400);
+  }
+
+  const oilPrices = await OilPrice.find()
+    .skip((parseInt(page as string) - 1) * parseInt(limit as string))
+    .limit(parseInt(limit as string));
+
+  const total = await OilPrice.countDocuments();
+
+  res.status(200).json({
+    message: "success",
+    total,
+    totalPerPage: parseInt(limit as string),
+    currentPage: parseInt(page as string),
     data: oilPrices,
   });
 };
