@@ -230,13 +230,13 @@
                   "S3Bucket": {
                     "Ref": "ServerlessDeploymentBucket"
                   },
-                  "S3Key": "serverless/govlogistic-api/dev/1721755228867-2024-07-23T17:20:28.867Z/govlogistic-api.zip"
+                  "S3Key": "serverless/govlogistic-api/dev/1721846675142-2024-07-24T18:44:35.142Z/govlogistic-api.zip"
                 },
                 "Handler": "dist/index.handler",
                 "Runtime": "nodejs20.x",
                 "FunctionName": "govlogistic-api-dev-govlogistic-api",
                 "MemorySize": 1024,
-                "Timeout": 6,
+                "Timeout": 30,
                 "TracingConfig": {
                   "Mode": "PassThrough"
                 },
@@ -263,14 +263,14 @@
                 "GovlogisticDashapiLogGroup"
               ]
             },
-            "GovlogisticDashapiLambdaVersionhFT5AKqfi0pqaAY6UTrhzHlJxvTutfIaRy1vkYmkDpI": {
+            "GovlogisticDashapiLambdaVersionhXNRy7Df8lIpEVKVNC8xv2WVmF550swUjQXGD2wuIRY": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "GovlogisticDashapiLambdaFunction"
                 },
-                "CodeSha256": "zjCaL8Q70XI4bdRgx/OWBBaeDRnEGDD0ccqEMikOoac="
+                "CodeSha256": "VmSwcTURCciu0eNvkxoio66MNjeT8Fkv6DwzZbJvU3E="
               }
             },
             "ApiGatewayRestApi": {
@@ -395,7 +395,7 @@
                 "GovlogisticDashapiLambdaPermissionApiGateway"
               ]
             },
-            "ApiGatewayDeployment1721755128796": {
+            "ApiGatewayDeployment1721846587481": {
               "Type": "AWS::ApiGateway::Deployment",
               "Properties": {
                 "RestApiId": {
@@ -458,7 +458,7 @@
             "GovlogisticDashapiLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "GovlogisticDashapiLambdaVersionhFT5AKqfi0pqaAY6UTrhzHlJxvTutfIaRy1vkYmkDpI"
+                "Ref": "GovlogisticDashapiLambdaVersionhXNRy7Df8lIpEVKVNC8xv2WVmF550swUjQXGD2wuIRY"
               },
               "Export": {
                 "Name": "sls-govlogistic-api-dev-GovlogisticDashapiLambdaFunctionQualifiedArn"
@@ -579,6 +579,7 @@
       "functions": {
         "govlogistic-api": {
           "handler": "dist/index.handler",
+          "timeout": 30,
           "events": [
             {
               "http": "ANY /"
@@ -592,10 +593,9 @@
             "artifact": "E:\\korn\\tech-creators\\gov-logistic\\govlogistic-api\\.serverless\\govlogistic-api.zip"
           },
           "memory": 1024,
-          "timeout": 6,
           "runtime": "nodejs20.x",
           "vpc": {},
-          "versionLogicalId": "GovlogisticDashapiLambdaVersionhFT5AKqfi0pqaAY6UTrhzHlJxvTutfIaRy1vkYmkDpI"
+          "versionLogicalId": "GovlogisticDashapiLambdaVersionhXNRy7Df8lIpEVKVNC8xv2WVmF550swUjQXGD2wuIRY"
         }
       },
       "package": {
@@ -605,7 +605,7 @@
           ".git/**"
         ],
         "artifactsS3KeyDirname": "serverless/govlogistic-api/dev/code-artifacts",
-        "artifactDirectoryName": "serverless/govlogistic-api/dev/1721755228867-2024-07-23T17:20:28.867Z"
+        "artifactDirectoryName": "serverless/govlogistic-api/dev/1721846675142-2024-07-24T18:44:35.142Z"
       },
       "plugins": [
         "serverless-offline",
@@ -630,7 +630,7 @@
         }
       }
     },
-    "serviceRawFile": "service: govlogistic-api\r\n\r\nstages:\r\n  prd:\r\n    region: ap-southeast-1\r\n    environment: prd\r\n    profile: govlogistic-prd\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: ap-southeast-1\r\n  tracing:\r\n    lambda: true\r\n    apiGateway: true\r\n  iamRoleStatements:\r\n    - Effect: \"Allow\"\r\n      Action:\r\n        - \"xray:PutTraceSegments\"\r\n        - \"xray:PutTelemetryRecords\"\r\n      Resource: \"*\"\r\n\r\nfunctions:\r\n  govlogistic-api:\r\n    handler: dist/index.handler\r\n    events:\r\n      - http: ANY /\r\n      - http: ANY /{proxy+}\r\n\r\npackage: \r\n  individually: true\r\n  exclude:\r\n    - .gitignore\r\n    - .git/**\r\n\r\nplugins:\r\n  - serverless-offline\r\n  - serverless-dotenv-plugin\r\n  - serverless-plugin-tracing\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 3001\r\n    noPrependStageInUrl: true\r\n\r\n  esbuild:\r\n    bundle: true\r\n    minify: false\r\n    sourcemap: true\r\n    exclude: ['aws-sdk']\r\n    target: 'node20'\r\n    platform: 'node'\r\n    concurrency: 10\r\n",
+    "serviceRawFile": "service: govlogistic-api\r\n\r\nstages:\r\n  prd:\r\n    region: ap-southeast-1\r\n    environment: prd\r\n    profile: govlogistic-prd\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: ap-southeast-1\r\n  tracing:\r\n    lambda: true\r\n    apiGateway: true\r\n  iamRoleStatements:\r\n    - Effect: \"Allow\"\r\n      Action:\r\n        - \"xray:PutTraceSegments\"\r\n        - \"xray:PutTelemetryRecords\"\r\n      Resource: \"*\"\r\n\r\nfunctions:\r\n  govlogistic-api:\r\n    handler: dist/index.handler\r\n    timeout: 30\r\n    events:\r\n      - http: ANY /\r\n      - http: ANY /{proxy+}\r\n\r\npackage: \r\n  individually: true\r\n  exclude:\r\n    - .gitignore\r\n    - .git/**\r\n\r\nplugins:\r\n  - serverless-offline\r\n  - serverless-dotenv-plugin\r\n  - serverless-plugin-tracing\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 3001\r\n    noPrependStageInUrl: true\r\n\r\n  esbuild:\r\n    bundle: true\r\n    minify: false\r\n    sourcemap: true\r\n    exclude: ['aws-sdk']\r\n    target: 'node20'\r\n    platform: 'node'\r\n    concurrency: 10\r\n",
     "command": [
       "deploy"
     ],
@@ -661,12 +661,12 @@
     "serviceProviderAwsCfStackName": "govlogistic-api-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-southeast-1:309142626320:stack/govlogistic-api-dev/63f09bb0-46e6-11ef-b475-0a6495f46353",
     "serviceProviderAwsCfStackCreated": "2024-07-20T22:21:20.550Z",
-    "serviceProviderAwsCfStackUpdated": "2024-07-23T17:20:36.294Z",
+    "serviceProviderAwsCfStackUpdated": "2024-07-24T18:44:42.031Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "GovlogisticDashapiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-1:309142626320:function:govlogistic-api-dev-govlogistic-api:16",
+        "OutputValue": "arn:aws:lambda:ap-southeast-1:309142626320:function:govlogistic-api-dev-govlogistic-api:17",
         "Description": "Current Lambda function version",
         "ExportName": "sls-govlogistic-api-dev-GovlogisticDashapiLambdaFunctionQualifiedArn"
       },

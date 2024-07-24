@@ -78,7 +78,7 @@ export const uploadOilPriceDataFromExcel = async (
 
   res.status(201).json({
     message: "success",
-    data: oilPrices,
+    result: oilPrices,
   });
 };
 
@@ -99,6 +99,6 @@ export const getOilPriceData = async (req: Request, res: Response) => {
     total,
     totalPerPage: parseInt(limit as string),
     currentPage: parseInt(page as string),
-    data: oilPrices,
+    result: oilPrices,
   });
 };

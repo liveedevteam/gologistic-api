@@ -28,7 +28,7 @@ export const uploadStdDataFromXlsx = async (req: Request, res: Response) => {
 
   res.status(201).json({
     message: "success",
-    data: stds,
+    result: stds,
   });
 };
 
@@ -49,6 +49,6 @@ export const getStdData = async (req: Request, res: Response) => {
     total,
     totalPerPage: parseInt(limit as string),
     currentPage: parseInt(page as string),
-    data: stds,
+    result: stds,
   });
 };

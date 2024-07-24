@@ -30,7 +30,7 @@ export const uploadStockDataFromXlsx = async (req: Request, res: Response) => {
 
   res.status(201).json({
     status: "success",
-    data: stocks,
+    result: stocks,
   });
 };
 
@@ -51,6 +51,6 @@ export const getStockData = async (req: Request, res: Response) => {
     total,
     totalPerPage: parseInt(limit as string),
     currentPage: parseInt(page as string),
-    data: stocks,
+    result: stocks,
   });
 };

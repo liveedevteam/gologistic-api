@@ -91,6 +91,6 @@ export const getWeightData = async (req: Request, res: Response) => {
     total,
     totalPerPage: parseInt(limit as string),
     currentPage: parseInt(page as string),
-    data: weights,
+    result: weights,
   });
 };
