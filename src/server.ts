@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
+import cors from "cors";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 
 import "express-async-errors";
@@ -17,6 +18,7 @@ import { oilPriceRouter } from "./modules/oilPrices/oilPrice.routes";
 export default async (app: any) => {
   connectDb();
 
+  app.use(cors());
   app.use(express.json());
 
   app.use("/api/auths", authsRouter);

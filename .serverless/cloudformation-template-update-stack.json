@@ -180,7 +180,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/govlogistic-api/dev/1721846675142-2024-07-24T18:44:35.142Z/govlogistic-api.zip"
+          "S3Key": "serverless/govlogistic-api/dev/1721847103806-2024-07-24T18:51:43.806Z/govlogistic-api.zip"
         },
         "Handler": "dist/index.handler",
         "Runtime": "nodejs20.x",
@@ -213,14 +213,14 @@
         "GovlogisticDashapiLogGroup"
       ]
     },
-    "GovlogisticDashapiLambdaVersionhXNRy7Df8lIpEVKVNC8xv2WVmF550swUjQXGD2wuIRY": {
+    "GovlogisticDashapiLambdaVersionaUdIEaEXQjCxkyyaJ9D8Rp1PIKfPLop6WKa6NMHi0I": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GovlogisticDashapiLambdaFunction"
         },
-        "CodeSha256": "VmSwcTURCciu0eNvkxoio66MNjeT8Fkv6DwzZbJvU3E="
+        "CodeSha256": "AmueTUOsJhbJgrjhoAi6DyXnLqi557LjlPUKlDdn3+k="
       }
     },
     "ApiGatewayRestApi": {
@@ -345,7 +345,7 @@
         "GovlogisticDashapiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1721846587481": {
+    "ApiGatewayDeployment1721847093620": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -408,7 +408,7 @@
     "GovlogisticDashapiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GovlogisticDashapiLambdaVersionhXNRy7Df8lIpEVKVNC8xv2WVmF550swUjQXGD2wuIRY"
+        "Ref": "GovlogisticDashapiLambdaVersionaUdIEaEXQjCxkyyaJ9D8Rp1PIKfPLop6WKa6NMHi0I"
       },
       "Export": {
         "Name": "sls-govlogistic-api-dev-GovlogisticDashapiLambdaFunctionQualifiedArn"
