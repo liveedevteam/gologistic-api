@@ -23,6 +23,7 @@ provider:
 functions:
   govlogistic-api:
     handler: dist/index.handler
+    timeout: 30
     events:
       - http: ANY /
       - http: ANY /{proxy+}
