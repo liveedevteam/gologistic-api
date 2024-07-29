@@ -1,6 +1,11 @@
 import { Router } from "express";
 
-import { getStockData, uploadStockDataFromXlsx } from "./stocks.controllers";
+import {
+  createStockData,
+  getStockData,
+  updateStockData,
+  uploadStockDataFromXlsx,
+} from "./stocks.controllers";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import asyncHandler from "../../utils/errors/asyncHandler";
@@ -14,6 +19,20 @@ router.post(
   requestValidation,
   uploadMiddleware.single("file"),
   asyncHandler(uploadStockDataFromXlsx)
+);
+
+router.put(
+  "/:id",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(updateStockData)
+);
+
+router.post(
+  "/",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(createStockData)
 );
 
 router.get(

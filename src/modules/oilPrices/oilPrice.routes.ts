@@ -8,6 +8,10 @@ import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import { uploadMiddleware } from "../../utils/uploads/multer";
 import asyncHandler from "../../utils/errors/asyncHandler";
+import {
+  createOilPriceValidates,
+  updateOilPriceValidates,
+} from "../../middlewares/validations/createOilPriceValidation";
 
 const router = Router();
 
@@ -16,6 +20,22 @@ router.post(
   tokenAndRoleHandler,
   requestValidation,
   uploadMiddleware.single("file"),
+  asyncHandler(uploadOilPriceDataFromExcel)
+);
+
+router.post(
+  "/",
+  tokenAndRoleHandler,
+  createOilPriceValidates,
+  requestValidation,
+  asyncHandler(uploadOilPriceDataFromExcel)
+);
+
+router.put(
+  "/:id",
+  tokenAndRoleHandler,
+  updateOilPriceValidates,
+  requestValidation,
   asyncHandler(uploadOilPriceDataFromExcel)
 );
 

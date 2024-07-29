@@ -94,3 +94,66 @@ export const getWeightData = async (req: Request, res: Response) => {
     result: weights,
   });
 };
+
+export const createWeightData = async (req: Request, res: Response) => {
+  const {
+    peaCode,
+    description,
+    unit,
+    weight,
+    package: package_,
+    totalWeight,
+    trucks,
+    remark,
+  } = req.body;
+
+  const weightData = await Weight.create({
+    peaCode,
+    description,
+    unit,
+    weight,
+    package: package_,
+    totalWeight,
+    trucks,
+    remark,
+  });
+
+  res.status(200).json({
+    message: "success",
+    result: weightData,
+  });
+};
+
+export const updateWeightData = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    peaCode,
+    description,
+    unit,
+    weight,
+    package: package_,
+    totalWeight,
+    trucks,
+    remark,
+  } = req.body;
+
+  const weightData = await Weight.findByIdAndUpdate(
+    id,
+    {
+      peaCode,
+      description,
+      unit,
+      weight,
+      package: package_,
+      totalWeight,
+      trucks,
+      remark,
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    message: "success",
+    result: weightData,
+  });
+};

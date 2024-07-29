@@ -1,7 +1,12 @@
 import { Router } from "express";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
-import { getWeightData, uploadWeightDataFromXlsx } from "./weights.controllers";
+import {
+  createWeightData,
+  getWeightData,
+  updateWeightData,
+  uploadWeightDataFromXlsx,
+} from "./weights.controllers";
 import { uploadMiddleware } from "../../utils/uploads/multer";
 import asyncHandler from "../../utils/errors/asyncHandler";
 
@@ -13,6 +18,20 @@ router.post(
   requestValidation,
   uploadMiddleware.single("file"),
   asyncHandler(uploadWeightDataFromXlsx)
+);
+
+router.put(
+  "/:id",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(updateWeightData)
+);
+
+router.post(
+  "/",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(createWeightData)
 );
 
 router.get(

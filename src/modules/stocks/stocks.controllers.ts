@@ -54,3 +54,61 @@ export const getStockData = async (req: Request, res: Response) => {
     result: stocks,
   });
 };
+
+export const createStockData = async (req: Request, res: Response) => {
+  const {
+    peaCode,
+    idCode,
+    engName,
+    thaiName,
+    package: package_,
+    description,
+    unit,
+  } = req.body;
+
+  const stock = await Stock.create({
+    peaCode,
+    idCode,
+    engName,
+    thaiName,
+    package: package_,
+    description,
+    unit,
+  });
+
+  res.status(200).json({
+    status: "success",
+    result: stock,
+  });
+};
+
+export const updateStockData = async (req: Request, res: Response) => {
+  const {
+    peaCode,
+    idCode,
+    engName,
+    thaiName,
+    package: package_,
+    description,
+    unit,
+  } = req.body;
+
+  const stock = await Stock.findByIdAndUpdate(
+    req.params.id,
+    {
+      peaCode,
+      idCode,
+      engName,
+      thaiName,
+      package: package_,
+      description,
+      unit,
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    status: "success",
+    result: stock,
+  });
+};

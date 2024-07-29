@@ -90,7 +90,8 @@ export const getOilPriceData = async (req: Request, res: Response) => {
 
   const oilPrices = await OilPrice.find()
     .skip((parseInt(page as string) - 1) * parseInt(limit as string))
-    .limit(parseInt(limit as string));
+    .limit(parseInt(limit as string))
+    .sort({ createdAt: -1 });
 
   const total = await OilPrice.countDocuments();
 
@@ -100,5 +101,84 @@ export const getOilPriceData = async (req: Request, res: Response) => {
     totalPerPage: parseInt(limit as string),
     currentPage: parseInt(page as string),
     result: oilPrices,
+  });
+};
+
+export const createOilPriceData = async (req: Request, res: Response) => {
+  const {
+    type,
+    key,
+    startPoint,
+    startGps,
+    stopPoint,
+    stopGps,
+    priceLiter,
+    distance,
+    truck,
+  } = req.body;
+
+  let oilPrice = null;
+
+  try {
+    oilPrice = await OilPrice.create({
+      type,
+      key,
+      startPoint,
+      startGps,
+      stopPoint,
+      stopGps,
+      priceLiter,
+      distance,
+      truck,
+    });
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
+
+  res.status(201).json({
+    message: "success",
+    result: oilPrice,
+  });
+};
+
+export const updateOilPriceData = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    type,
+    key,
+    startPoint,
+    startGps,
+    stopPoint,
+    stopGps,
+    priceLiter,
+    distance,
+    truck,
+  } = req.body;
+
+  let oilPrice = null;
+
+  try {
+    oilPrice = await OilPrice.findByIdAndUpdate(
+      id,
+      {
+        type,
+        key,
+        startPoint,
+        startGps,
+        stopPoint,
+        stopGps,
+        priceLiter,
+        distance,
+        truck,
+      },
+      { new: true }
+    );
+  } catch (error: any) {
+    throw new AppError(error.message, 500);
+  }
+
+  res.status(200).json({
+    message: "success",
+    result: oilPrice,
   });
 };
