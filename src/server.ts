@@ -14,6 +14,8 @@ import { weightsRouter } from "./modules/weights/weights.routes";
 import { stocksRouter } from "./modules/stocks/stocks.routes";
 import { stdsRouter } from "./modules/stds/std.routes";
 import { oilPriceRouter } from "./modules/oilPrices/oilPrice.routes";
+import { parcelsRouter } from "./modules/parcels/parcels.routes";
+import { planningsRouter } from "./modules/plannings/plannings.routers";
 
 export default async (app: any) => {
   connectDb();
@@ -28,11 +30,13 @@ export default async (app: any) => {
   app.use("/api/stocks", stocksRouter);
   app.use("/api/stds", stdsRouter);
   app.use("/api/oil-prices", oilPriceRouter);
+  app.use("/api/parcels", parcelsRouter);
+  app.use("/api/plannings", planningsRouter);
 
   app.get("/health", (req: Request, res: Response) => {
     res.json({ message: "OK" });
   });
-  
+
   app.get("/", (req: Request, res: Response) => {
     res.json({ message: "Home V" + process.env.VERSION });
   });

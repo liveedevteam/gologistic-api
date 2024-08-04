@@ -1,11 +1,5 @@
 service: govlogistic-api
 
-stages:
-  prd:
-    region: ap-southeast-1
-    environment: prd
-    profile: govlogistic-prd
-
 provider:
   name: aws
   runtime: nodejs20.x
@@ -19,14 +13,23 @@ provider:
         - "xray:PutTraceSegments"
         - "xray:PutTelemetryRecords"
       Resource: "*"
+  apiGateway:
+    binaryMediaTypes: 
+      - 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' # Add the content type for XLSX
 
 functions:
   govlogistic-api:
     handler: dist/index.handler
-    timeout: 30
+    timeout: 300
     events:
-      - http: ANY /
-      - http: ANY /{proxy+}
+      - http:
+          path: /
+          method: ANY
+          cors: true
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
 
 package: 
   individually: true
