@@ -10,7 +10,7 @@ import OilPrice from "../oilPrices/oilPrice.model";
 import Std from "../stds/std.model";
 import Stock from "../stocks/stocks.model";
 import Weight from "../weights/weights.model";
-import { uploadToS3 } from "../../utils/aws/uploadToS3";
+import { getSignedUrlForGet, uploadToS3 } from "../../utils/aws/uploadToS3";
 import dayjs from "dayjs";
 
 export const getPlannings = async (req: Request, res: Response) => {
@@ -86,7 +86,6 @@ export const createPlanning = async (req: Request, res: Response) => {
         stopPoint: `${item.destination}`,
         priceLiter: oilPricePerLiter,
       });
-      item.distance = oilPriceDoc?.distance;
 
       if (!oilPriceDoc) throw new AppError("Oil price not found", 404);
 
@@ -136,6 +135,9 @@ export const createPlanning = async (req: Request, res: Response) => {
         item.distance?.value > 800 ? "4" : "3",
       ]);
 
+      item.description = stockDoc?.description;
+      item.distance = oilPriceDoc?.distance;
+
       return item;
     })
   );
@@ -154,7 +156,7 @@ export const createPlanning = async (req: Request, res: Response) => {
   planning.xlsxFilename = imgObj.url;
   await Planning.findByIdAndUpdate(planning._id, {
     parcels: newParcels,
-    xlsxFilename: imgObj.url,
+    xlsxFilename: imgObj.key,
   });
 
   await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
@@ -211,3 +213,17 @@ export const updatePlanning = async (req: Request, res: Response) => {
 
   res.status(200).json(newPlanning);
 };
+
+export const downloadExcelOfPlanning = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const planning = (await Planning.findOne({ _id: id })) as any;
+  if (!planning) new AppError("Planning not found", 404);
+  const xlsxFilename = planning.xlsxFilename as string;
+  const signedUrl = await getSignedUrlForGet({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `${xlsxFilename}`,
+  });
+  res.status(200).json({
+    url: signedUrl,
+  });
+}; 

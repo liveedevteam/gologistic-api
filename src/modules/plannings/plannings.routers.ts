@@ -2,9 +2,16 @@ import { Router } from "express";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
 import requestValidation from "../../middlewares/validations/requestValidation";
 import asyncHandler from "../../utils/errors/asyncHandler";
-import { createPlanning, getPlanning, getPlannings } from "./plannings.controller";
+import { createPlanning, downloadExcelOfPlanning, getPlanning, getPlannings } from "./plannings.controller";
 
 const router = Router();
+
+router.get(
+  "/media/:id",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(downloadExcelOfPlanning)
+);
 
 router.get(
   "/:id",
