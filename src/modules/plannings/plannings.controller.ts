@@ -118,7 +118,7 @@ export const createPlanning = async (req: Request, res: Response) => {
 
       sheetData.push([
         parcels.length + 1,
-        item.original,
+        item.source,
         item.destination,
         oilPriceDoc.distance,
         item.peaCode,
