@@ -180,13 +180,13 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/govlogistic-api/dev/1721849742639-2024-07-24T19:35:42.639Z/govlogistic-api.zip"
+          "S3Key": "serverless/govlogistic-api/dev/1722815694996-2024-08-04T23:54:54.996Z/govlogistic-api.zip"
         },
         "Handler": "dist/index.handler",
         "Runtime": "nodejs20.x",
         "FunctionName": "govlogistic-api-dev-govlogistic-api",
         "MemorySize": 1024,
-        "Timeout": 30,
+        "Timeout": 300,
         "TracingConfig": {
           "Mode": "PassThrough"
         },
@@ -199,7 +199,12 @@
             "DB_NAME": "loopsTest",
             "DB_USERNAME": "loopsTestUser",
             "DB_PASSWORD": "b5ChQJ6WovAYuY5V",
-            "DB_URI": "loops-prod-shard-00-00.6rsba.mongodb.net:27017,loops-prod-shard-00-01.6rsba.mongodb.net:27017,loops-prod-shard-00-02.6rsba.mongodb.net:27017"
+            "DB_URI": "loops-prod-shard-00-00.6rsba.mongodb.net:27017,loops-prod-shard-00-01.6rsba.mongodb.net:27017,loops-prod-shard-00-02.6rsba.mongodb.net:27017",
+            "LINE_CHANNEL_ID": "1657236765",
+            "LINE_CHANNEL_SECRET": "d3d814182744625542928c132a02cd6f",
+            "LINE_CHANNEL_TOKEN": "j1ktNf1I3f7u1K9JQwdg4gTLFINcWZ3XdDZ2Sg2bDdjzKCot+v7NvqtZ6XRr3oUvGs0SUzdvdSmjYCKydigNNqjM40JbvUhZG0L55SIB8zIXIvMCMlvz/cKehjmlnFgwaLhUyaKcsSLBbTVjLjIYmgdB04t89/1O/w1cDnyilFU=",
+            "GOOGLE_PLACE_API_KEY": "AIzaSyB4yiAFCGqeJknh541eMBxQb5F61nkDms8",
+            "AWS_BUCKET_NAME": "loops-storage-bucket"
           }
         },
         "Role": {
@@ -213,20 +218,23 @@
         "GovlogisticDashapiLogGroup"
       ]
     },
-    "GovlogisticDashapiLambdaVersionOaF1WD3lNGGEBRLuxFbfz5X3hikHEmBStZ3TtkJuznE": {
+    "GovlogisticDashapiLambdaVersion4fC3zaZp83i5zCtf7wGQQgOjIuwlWUDNkW2rcvYDU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GovlogisticDashapiLambdaFunction"
         },
-        "CodeSha256": "Hw1Z2/C97VXDcETZWnq7+bkwefArv69L91+XwaBQKbE="
+        "CodeSha256": "JHDfyxpdSdild7oUwg5K+NB9XlWSyLFQT9OQ3r2tE5A="
       }
     },
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
         "Name": "dev-govlogistic-api",
+        "BinaryMediaTypes": [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ],
         "EndpointConfiguration": {
           "Types": [
             "EDGE"
@@ -245,6 +253,99 @@
           ]
         },
         "PathPart": "{proxy+}",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodProxyVarOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceProxyVar"
+        },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -345,7 +446,7 @@
         "GovlogisticDashapiLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1721849674421": {
+    "ApiGatewayDeployment1722815606859": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -354,6 +455,8 @@
         "StageName": "dev"
       },
       "DependsOn": [
+        "ApiGatewayMethodOptions",
+        "ApiGatewayMethodProxyVarOptions",
         "ApiGatewayMethodAny",
         "ApiGatewayMethodProxyVarAny"
       ]
@@ -408,7 +511,7 @@
     "GovlogisticDashapiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GovlogisticDashapiLambdaVersionOaF1WD3lNGGEBRLuxFbfz5X3hikHEmBStZ3TtkJuznE"
+        "Ref": "GovlogisticDashapiLambdaVersion4fC3zaZp83i5zCtf7wGQQgOjIuwlWUDNkW2rcvYDU"
       },
       "Export": {
         "Name": "sls-govlogistic-api-dev-GovlogisticDashapiLambdaFunctionQualifiedArn"

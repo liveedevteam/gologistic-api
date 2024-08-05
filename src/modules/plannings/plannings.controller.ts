@@ -24,7 +24,7 @@ export const getPlannings = async (req: Request, res: Response) => {
       .skip((parseInt(page as string) - 1) * parseInt(limit as string))
       .limit(limit as unknown as number)
       .sort({ createdAt: -1 });
-    console.log(`plannings`, plannings);
+    // console.log(`plannings`, plannings);
     const total = await Planning.countDocuments();
     const objRes = {
       total,
@@ -54,19 +54,20 @@ export const getPlanning = async (req: Request, res: Response) => {
 
 export const createPlanning = async (req: Request, res: Response) => {
   const { title, budget, date, oilPricePerLiter, parcels } = req.body;
+  console.log(`Body`, JSON.stringify(req.body));
   const email = req.user.email;
   const auth = await Auths.findOne({ email });
   const user = await User.findOne({
     auth: auth?._id,
   });
   const userId = user?._id;
-  console.log(`userId`, userId);
+  // console.log(`userId`, userId);
   const planning = await Planning.create({
     userId,
     title,
     budget,
     date,
-    oilPricePerLiter: oilPricePerLiter * 100,
+    oilPricePerLiter: oilPricePerLiter,
     parcels,
   });
   const xlsxTemplatePath = path.join(
@@ -77,14 +78,15 @@ export const createPlanning = async (req: Request, res: Response) => {
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   const sheetData = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
-  await Promise.all(
+  const newParcels = await Promise.all(
     parcels.map(async (item: any) => {
       const oilPriceDoc = await OilPrice.findOne({
         type: "diesel",
-        startPoint: `${item.original}`,
+        startPoint: `${item.source}`,
         stopPoint: `${item.destination}`,
         priceLiter: oilPricePerLiter,
       });
+      item.distance = oilPriceDoc?.distance;
 
       if (!oilPriceDoc) throw new AppError("Oil price not found", 404);
 
@@ -103,6 +105,7 @@ export const createPlanning = async (req: Request, res: Response) => {
       const weightDoc = await Weight.findOne({
         peaCode: item.peaCode,
       });
+      console.log(`weightDoc`, weightDoc);
 
       if (!weightDoc) throw new AppError("Weight not found", 404);
 
@@ -132,6 +135,8 @@ export const createPlanning = async (req: Request, res: Response) => {
         item.contract,
         item.distance?.value > 800 ? "4" : "3",
       ]);
+
+      return item;
     })
   );
 
@@ -143,10 +148,14 @@ export const createPlanning = async (req: Request, res: Response) => {
     bookType: "xlsx",
   });
 
+  console.log(`newParcels`, newParcels);
   const originalname = `${title}-${dayjs().format()}.xlsx`;
   const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
   planning.xlsxFilename = imgObj.url;
-  await planning.save();
+  await Planning.findByIdAndUpdate(planning._id, {
+    parcels: newParcels,
+    xlsxFilename: imgObj.url,
+  });
 
   await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
     {
