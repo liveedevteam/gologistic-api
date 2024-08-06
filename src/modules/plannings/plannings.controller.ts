@@ -164,7 +164,12 @@ export const getPlanning = async (
       return next(new AppError("Planning not found", 404));
     }
 
-    res.status(200).json(planning);
+    const newPlanning = {
+      ...planning,
+      parcels: await processParcels(planning.parcels, planning.oilPricePerLiter),
+    };
+
+    res.status(200).json(newPlanning);
   } catch (error: any) {
     next(new AppError(error.message, 400));
   }
@@ -211,12 +216,10 @@ export const createPlanning = async (
       xlsxFilename: imgObj.key,
     });
 
-    await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
+    await pushMessage("U9b43a5c487832057d7a1c09536e7d219", [
       {
         type: "text",
-        text: `New planning ${title} has been created \n
-        -------------------------------------------- \n
-        Download file here: ${imgObj.url}`,
+        text: `New planning ${title} has been created \n`
       },
     ]);
 
@@ -256,10 +259,28 @@ export const updatePlanning = async (
     }
 
     if (isNewStatus) {
-      await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
+      let statusText = "";
+      switch (status) {
+        case "inProgress":
+          statusText = "แผนจ้างขนส่ง";
+          break;
+        case "proposal":
+          statusText = "ใบเสนอราคา ";
+          break;
+        case "comparePrice":
+          statusText = "เปรียบเทียบราคา";
+          break;
+        case "completed":
+          statusText = "ขออนุมัติจ้าง";
+          break;
+        default:
+          statusText = "Draft";
+          break;
+      }
+      await pushMessage("U9b43a5c487832057d7a1c09536e7d219", [
         {
           type: "text",
-          text: `Planning ${title} has been updated to ${status}`,
+          text: `Planning ${title} has been updated to ${statusText}`,
         },
       ]);
     }

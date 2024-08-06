@@ -11,8 +11,8 @@ const planningSchema = new mongoose.Schema(
       default: "",
     },
     budget: {
-      type: Number,
-      default: 0,
+      type: String,
+      default: "",
     },
     date: {
       type: Date,
@@ -34,7 +34,7 @@ const planningSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "draft",
-      enum: ["draft", "in-progress", "proposal", "comparePrice", "completed"],
+      enum: ["draft", "inProgress", "proposal", "comparePrice", "completed"],
     },
     xlsxFilename: {
       type: String,
