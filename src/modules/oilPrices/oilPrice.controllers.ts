@@ -182,3 +182,14 @@ export const updateOilPriceData = async (req: Request, res: Response) => {
     result: oilPrice,
   });
 };
+
+export const getStartAndStopPoints = async (req: Request, res: Response) => {
+  const startPoints = await OilPrice.find().distinct("startPoint");
+  const stopPoints = await OilPrice.find().distinct("stopPoint");
+
+  res.status(200).json({
+    message: "success",
+    startPoints,
+    stopPoints,
+  });
+}

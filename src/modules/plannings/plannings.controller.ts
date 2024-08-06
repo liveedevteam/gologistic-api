@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import Planning from "./plannings.model";
 import AppError from "../../utils/errors/appError";
 import Auths from "../auths/models/auths.model";
@@ -13,63 +13,72 @@ import Weight from "../weights/weights.model";
 import { getSignedUrlForGet, uploadToS3 } from "../../utils/aws/uploadToS3";
 import dayjs from "dayjs";
 
-export const getPlannings = async (req: Request, res: Response) => {
-  const { page, limit } = req.query;
+const PAGE_DEFAULT = 1;
+const LIMIT_DEFAULT = 10;
 
-  if (!page || !limit) new AppError("Please provide page and limit", 400);
+const validatePagination = (page: string, limit: string) => {
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
 
-  try {
-    const plannings = await Planning.find({})
-      .populate("userId")
-      .skip((parseInt(page as string) - 1) * parseInt(limit as string))
-      .limit(limit as unknown as number)
-      .sort({ createdAt: -1 });
-    // console.log(`plannings`, plannings);
-    const total = await Planning.countDocuments();
-    const objRes = {
-      total,
-      totalPerPage: limit,
-      currentPage: page,
-      result: plannings,
-    };
-
-    res.status(200).json(objRes);
-  } catch (error: any) {
-    new AppError(error.message, 400);
+  if (
+    isNaN(pageNumber) ||
+    isNaN(limitNumber) ||
+    pageNumber < 1 ||
+    limitNumber < 1
+  ) {
+    throw new AppError("Invalid pagination parameters", 400);
   }
+
+  return { pageNumber, limitNumber };
 };
 
-export const getPlanning = async (req: Request, res: Response) => {
-  const { id } = req.params;
+const processParcels = async (parcels: any[], oilPricePerLiter: number) => {
+  return Promise.all(
+    parcels.map(async (item: any) => {
+      const [oilPriceDoc, stdDoc, stockDoc, weightDoc] = await Promise.all([
+        OilPrice.findOne({
+          type: "diesel",
+          startPoint: item.source,
+          stopPoint: item.destination,
+          priceLiter: oilPricePerLiter,
+        }),
+        Std.findOne({ peaCode: item.peaCode }),
+        Stock.findOne({ peaCode: item.peaCode }),
+        Weight.findOne({ peaCode: item.peaCode }),
+      ]);
 
-  const planning = (await Planning.findOne({ _id: id }).populate(
-    "userId"
-  )) as any;
-  if (!planning) new AppError("Planning not found", 404);
-  const planningObj = planning.toObject();
+      if (!oilPriceDoc || !stdDoc || !stockDoc || !weightDoc) {
+        throw new AppError("Required data not found", 404);
+      }
 
-  // console.log(`planning`, planning);
-  res.status(200).json(planningObj);
+      const { centralPrice, centralNumber } = calculateCentralPriceAndNumber(
+        item,
+        oilPriceDoc
+      );
+
+      return {
+        ...item,
+        centralPrice,
+        centralNumber,
+        description: stockDoc.description,
+        distance: oilPriceDoc.distance,
+      };
+    })
+  );
 };
 
-export const createPlanning = async (req: Request, res: Response) => {
-  const { title, budget, date, oilPricePerLiter, parcels } = req.body;
-  console.log(`Body`, JSON.stringify(req.body));
-  const email = req.user.email;
-  const auth = await Auths.findOne({ email });
-  const user = await User.findOne({
-    auth: auth?._id,
-  });
-  const userId = user?._id;
-  // console.log(`userId`, userId);
-  const planning = await Planning.create({
-    userId,
-    title,
-    budget,
-    date,
-    oilPricePerLiter: oilPricePerLiter,
-    parcels,
-  });
+const calculateCentralPriceAndNumber = (item: any, oilPriceDoc: any) => {
+  console.log("oilPriceDoc", oilPriceDoc);
+  const indexOfTruck = item.numberOfVehicles.findIndex(
+    (vehicle: any) => vehicle.number > 0
+  );
+  console.log("centralPrice", oilPriceDoc.truck[indexOfTruck].value);
+  const centralPrice = oilPriceDoc.truck[indexOfTruck].value;
+  const centralNumber = item.numberOfVehicles[indexOfTruck].number;
+  return { centralPrice, centralNumber };
+};
+
+const createExcelFile = (title: string, parcels: any[]) => {
   const xlsxTemplatePath = path.join(
     __dirname,
     "../../../templates/template.xlsx"
@@ -77,153 +86,228 @@ export const createPlanning = async (req: Request, res: Response) => {
   const workbook = xlsx.readFile(xlsxTemplatePath);
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
-  const sheetData = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
-  const newParcels = await Promise.all(
-    parcels.map(async (item: any) => {
-      const oilPriceDoc = await OilPrice.findOne({
-        type: "diesel",
-        startPoint: `${item.source}`,
-        stopPoint: `${item.destination}`,
-        priceLiter: oilPricePerLiter,
-      });
+  const sheetData = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
 
-      if (!oilPriceDoc) throw new AppError("Oil price not found", 404);
+  parcels.forEach((item: any, index: number) => {
+    sheetData.push([
+      index + 1,
+      item.source,
+      item.destination,
+      item.distance,
+      item.peaCode,
+      item.description,
+      item.weight,
+      item.quantity,
+      item.numberOfVehicles[0].number,
+      item.numberOfVehicles[1].number,
+      item.numberOfVehicles[2].number,
+      item.centralPrice,
+      item.centralPrice * item.centralNumber,
+      "'นับถัดจากใบสั่งจ้าง",
+      item.contract,
+      item.distance?.value > 800 ? "4" : "3",
+    ]);
+  });
 
-      const stdDoc = await Std.findOne({
-        peaCode: item.peaCode,
-      });
-
-      if (!stdDoc) throw new AppError("Std not found", 404);
-
-      const stockDoc = await Stock.findOne({
-        peaCode: item.peaCode,
-      });
-
-      if (!stockDoc) throw new AppError("Stock not found", 404);
-
-      const weightDoc = await Weight.findOne({
-        peaCode: item.peaCode,
-      });
-      console.log(`weightDoc`, weightDoc);
-
-      if (!weightDoc) throw new AppError("Weight not found", 404);
-
-      let centralPrice = 0;
-      let centralNumber = 0;
-      const indexOfTruck = item.numberOfVehicles.findIndex(
-        (item: any) => item.number > 0
-      );
-      centralPrice = oilPriceDoc.truck[indexOfTruck].value;
-      centralNumber = item.numberOfVehicles[indexOfTruck].number;
-
-      sheetData.push([
-        parcels.length + 1,
-        item.source,
-        item.destination,
-        oilPriceDoc.distance,
-        item.peaCode,
-        stockDoc?.description,
-        weightDoc?.weight,
-        item.quantity,
-        item.numberOfVehicles[0].number,
-        item.numberOfVehicles[1].number,
-        item.numberOfVehicles[2].number,
-        centralPrice,
-        centralPrice * centralNumber,
-        "'นับถัดจากใบสั่งจ้าง",
-        item.contract,
-        item.distance?.value > 800 ? "4" : "3",
-      ]);
-
-      item.description = stockDoc?.description;
-      item.distance = oilPriceDoc?.distance;
-
-      return item;
-    })
-  );
-
-  const updatedSheet = xlsx.utils.aoa_to_sheet(sheetData as any[][]);
+  const updatedSheet = xlsx.utils.aoa_to_sheet(sheetData);
   workbook.Sheets[sheetName] = updatedSheet;
 
-  const buffer = xlsx.write(workbook, {
-    type: "buffer",
-    bookType: "xlsx",
-  });
-
-  console.log(`newParcels`, newParcels);
-  const originalname = `${title}-${dayjs().format()}.xlsx`;
-  const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
-  planning.xlsxFilename = imgObj.url;
-  await Planning.findByIdAndUpdate(planning._id, {
-    parcels: newParcels,
-    xlsxFilename: imgObj.key,
-  });
-
-  await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
-    {
-      type: "text",
-      text: `New planning ${title} has been created \n 
-      -------------------------------------------- \n
-      Download file here: ${imgObj.url}`,
-    },
-  ]);
-
-  res.status(201).json({
-    url: imgObj.url,
-  });
+  return xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
 };
 
-export const updatePlanning = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { title, description, date, parcels, status } = req.body;
-  const planning = (await Planning.findOne({ _id: id })) as any;
-  let isNewStatus = false;
-
-  if (!planning) new AppError("Planning not found", 404);
-
-  if (planning.status !== status) isNewStatus = true;
-
-  let newObj = {
-    ...planning,
+export const getPlannings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { page = PAGE_DEFAULT, limit = LIMIT_DEFAULT } = req.query as {
+    page: string;
+    limit: string;
   };
 
-  delete newObj._id;
+  try {
+    const { pageNumber, limitNumber } = validatePagination(
+      page.toString(),
+      limit.toString()
+    );
 
-  const newPlanning = await Planning.findByIdAndUpdate(
-    id,
-    {
-      ...newObj,
+    const plannings = await Planning.find({})
+      .populate("userId")
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber)
+      .sort({ createdAt: -1 });
+
+    const total = await Planning.countDocuments();
+
+    res.status(200).json({
+      total,
+      totalPerPage: limitNumber,
+      currentPage: pageNumber,
+      result: plannings,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export const getPlanning = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { id } = req.params;
+
+  try {
+    const planning = await Planning.findById(id).populate("userId").lean();
+
+    if (!planning) {
+      return next(new AppError("Planning not found", 404));
+    }
+
+    res.status(200).json(planning);
+  } catch (error: any) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export const createPlanning = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { title, budget, date, oilPricePerLiter, parcels } = req.body;
+
+  try {
+    console.log(`Body: ${JSON.stringify(req.body)}`);
+
+    const email = req.user.email;
+    const auth = await Auths.findOne({ email });
+    const user = await User.findOne({ auth: auth?._id });
+
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    const planning = new Planning({
+      userId: user._id,
       title,
-      description,
+      budget,
       date,
+      oilPricePerLiter,
       parcels,
-      status,
-    },
-    { new: true }
-  );
+    });
 
-  if (isNewStatus) {
+    await planning.save();
+
+    const updatedParcels = await processParcels(parcels, oilPricePerLiter);
+    const buffer = createExcelFile(title, updatedParcels);
+
+    const originalname = `${title}-${dayjs().format()}.xlsx`;
+    const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
+
+    planning.xlsxFilename = imgObj.url;
+    await planning.updateOne({
+      parcels: updatedParcels,
+      xlsxFilename: imgObj.key,
+    });
+
     await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
       {
         type: "text",
-        text: `Planning ${title} has been updated to ${status}`,
+        text: `New planning ${title} has been created \n
+        -------------------------------------------- \n
+        Download file here: ${imgObj.url}`,
       },
     ]);
-  }
 
-  res.status(200).json(newPlanning);
+    res.status(201).json({ url: imgObj.url });
+  } catch (error: any) {
+    next(new AppError(error.message, 400));
+  }
 };
 
-export const downloadExcelOfPlanning = async (req: Request, res: Response) => {
+export const updatePlanning = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
-  const planning = (await Planning.findOne({ _id: id })) as any;
-  if (!planning) new AppError("Planning not found", 404);
-  const xlsxFilename = planning.xlsxFilename as string;
-  const signedUrl = await getSignedUrlForGet({
-    Bucket: process.env.AWS_BUCKET_NAME,
-    Key: `${xlsxFilename}`,
-  });
-  res.status(200).json({
-    url: signedUrl,
-  });
-}; 
+  const { title, oilPricePerLiter, budget, date, status, parcels } = req.body;
+
+  try {
+    console.log(`Body: ${JSON.stringify(req.body)}`);
+
+    const planning = await Planning.findById(id);
+
+    if (!planning) {
+      return next(new AppError("Planning not found", 404));
+    }
+
+    const isNewStatus = planning.status !== status;
+
+    const updatedPlanning = (await Planning.findByIdAndUpdate(
+      id,
+      { title, oilPricePerLiter, budget, date, status, parcels, updatedAt: new Date() },
+      { new: true }
+    )) as any;
+
+    if (!updatedPlanning) {
+      return next(new AppError("Failed to update planning", 500));
+    }
+
+    if (isNewStatus) {
+      await pushMessage("U6252eabcd5b05b07e76de9fe319e5e4e", [
+        {
+          type: "text",
+          text: `Planning ${title} has been updated to ${status}`,
+        },
+      ]);
+    }
+
+    // Generate new excel file
+    const updatedParcels = await processParcels(
+      updatedPlanning.parcels,
+      updatedPlanning.oilPricePerLiter
+    );
+    const buffer = createExcelFile(title, updatedParcels);
+
+    const originalname = `${title}-${dayjs().format()}.xlsx`;
+    const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
+    updatedPlanning.xlsxFilename = imgObj.key;
+
+    await updatedPlanning.updateOne({
+      oilPricePerLiter,
+      parcels: updatedParcels,
+      xlsxFilename: imgObj.key,
+    });
+
+    res.status(200).json(updatedPlanning);
+  } catch (error: any) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export const downloadExcelOfPlanning = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { id } = req.params;
+
+  try {
+    const planning = await Planning.findById(id).lean();
+
+    if (!planning) {
+      return next(new AppError("Planning not found", 404));
+    }
+
+    const signedUrl = await getSignedUrlForGet({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: planning.xlsxFilename,
+    });
+
+    res.status(200).json({ url: signedUrl });
+  } catch (error: any) {
+    next(new AppError(error.message, 400));
+  }
+};

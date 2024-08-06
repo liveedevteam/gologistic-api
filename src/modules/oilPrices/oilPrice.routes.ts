@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   getOilPriceData,
+  getStartAndStopPoints,
   uploadOilPriceDataFromExcel,
 } from "./oilPrice.controllers";
 import tokenAndRoleHandler from "../../middlewares/tokenAndRoleHandler";
@@ -14,6 +15,13 @@ import {
 } from "../../middlewares/validations/createOilPriceValidation";
 
 const router = Router();
+
+router.get(
+  "/location/start-stop",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(getStartAndStopPoints)
+);
 
 router.post(
   "/:type/xlsx",

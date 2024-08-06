@@ -12,6 +12,7 @@ provider:
       Action:
         - "xray:PutTraceSegments"
         - "xray:PutTelemetryRecords"
+        - "s3:*"
       Resource: "*"
   apiGateway:
     binaryMediaTypes: 
