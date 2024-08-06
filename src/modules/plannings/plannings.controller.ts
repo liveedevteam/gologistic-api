@@ -78,7 +78,11 @@ const calculateCentralPriceAndNumber = (item: any, oilPriceDoc: any) => {
   return { centralPrice, centralNumber };
 };
 
-const createExcelFile = (title: string, parcels: any[]) => {
+const createExcelFile = (
+  title: string,
+  parcels: any[],
+  oilPricePerLiter: number
+) => {
   const xlsxTemplatePath = path.join(
     __dirname,
     "../../../templates/template.xlsx"
@@ -87,6 +91,7 @@ const createExcelFile = (title: string, parcels: any[]) => {
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   const sheetData = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
+  sheetData[4][13] = oilPricePerLiter;
 
   parcels.forEach((item: any, index: number) => {
     sheetData.push([
@@ -166,7 +171,10 @@ export const getPlanning = async (
 
     const newPlanning = {
       ...planning,
-      parcels: await processParcels(planning.parcels, planning.oilPricePerLiter),
+      parcels: await processParcels(
+        planning.parcels,
+        planning.oilPricePerLiter
+      ),
     };
 
     res.status(200).json(newPlanning);
@@ -205,7 +213,7 @@ export const createPlanning = async (
     await planning.save();
 
     const updatedParcels = await processParcels(parcels, oilPricePerLiter);
-    const buffer = createExcelFile(title, updatedParcels);
+    const buffer = createExcelFile(title, updatedParcels, oilPricePerLiter);
 
     const originalname = `${title}-${dayjs().format()}.xlsx`;
     const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
@@ -219,7 +227,7 @@ export const createPlanning = async (
     await pushMessage("U9b43a5c487832057d7a1c09536e7d219", [
       {
         type: "text",
-        text: `New planning ${title} has been created \n`
+        text: `New planning ${title} has been created \n`,
       },
     ]);
 
@@ -250,7 +258,15 @@ export const updatePlanning = async (
 
     const updatedPlanning = (await Planning.findByIdAndUpdate(
       id,
-      { title, oilPricePerLiter, budget, date, status, parcels, updatedAt: new Date() },
+      {
+        title,
+        oilPricePerLiter,
+        budget,
+        date,
+        status,
+        parcels,
+        updatedAt: new Date(),
+      },
       { new: true }
     )) as any;
 
@@ -290,7 +306,7 @@ export const updatePlanning = async (
       updatedPlanning.parcels,
       updatedPlanning.oilPricePerLiter
     );
-    const buffer = createExcelFile(title, updatedParcels);
+    const buffer = createExcelFile(title, updatedParcels, oilPricePerLiter);
 
     const originalname = `${title}-${dayjs().format()}.xlsx`;
     const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
