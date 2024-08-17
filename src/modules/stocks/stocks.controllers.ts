@@ -112,3 +112,14 @@ export const updateStockData = async (req: Request, res: Response) => {
     result: stock,
   });
 };
+
+export const getStockDataByPeaCode = async (req: Request, res: Response) => {
+  const { peaCode } = req.params;
+
+  const stock = await Stock.findOne({ peaCode });
+
+  res.status(200).json({
+    status: "success",
+    result: stock,
+  });
+};

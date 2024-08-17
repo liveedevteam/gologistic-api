@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   createStockData,
   getStockData,
+  getStockDataByPeaCode,
   updateStockData,
   uploadStockDataFromXlsx,
 } from "./stocks.controllers";
@@ -12,6 +13,13 @@ import asyncHandler from "../../utils/errors/asyncHandler";
 import { uploadMiddleware } from "../../utils/uploads/multer";
 
 const router = Router();
+
+router.get(
+  "/pea-code/:peaCode",
+  tokenAndRoleHandler,
+  requestValidation,
+  asyncHandler(getStockDataByPeaCode)
+);
 
 router.post(
   "/xlsx",

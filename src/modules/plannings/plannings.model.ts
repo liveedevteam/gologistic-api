@@ -16,7 +16,7 @@ const planningSchema = new mongoose.Schema(
     },
     date: {
       type: Date,
-      required: true,
+      default: null,
     },
     oilPricePerLiter: {
       type: Number,

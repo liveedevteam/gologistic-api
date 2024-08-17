@@ -35,33 +35,48 @@ const validatePagination = (page: string, limit: string) => {
 const processParcels = async (parcels: any[], oilPricePerLiter: number) => {
   return Promise.all(
     parcels.map(async (item: any) => {
-      const [oilPriceDoc, stdDoc, stockDoc, weightDoc] = await Promise.all([
-        OilPrice.findOne({
-          type: "diesel",
-          startPoint: item.source,
-          stopPoint: item.destination,
-          priceLiter: oilPricePerLiter,
-        }),
-        Std.findOne({ peaCode: item.peaCode }),
-        Stock.findOne({ peaCode: item.peaCode }),
-        Weight.findOne({ peaCode: item.peaCode }),
-      ]);
+      const processedPeas = await Promise.all(
+        item.peas.map(async (pea: any) => {
+          const [oilPriceDoc, stdDoc, stockDoc, weightDoc] = await Promise.all([
+            OilPrice.findOne({
+              type: "diesel",
+              startPoint: item.source,
+              stopPoint: item.destination,
+              priceLiter: oilPricePerLiter,
+            }),
+            Std.findOne({ peaCode: pea.peaCode }),
+            Stock.findOne({ peaCode: pea.peaCode }),
+            Weight.findOne({ peaCode: pea.peaCode }),
+          ]);
 
-      if (!oilPriceDoc || !stdDoc || !stockDoc || !weightDoc) {
-        throw new AppError("Required data not found", 404);
-      }
+          console.log(`std`, stdDoc);
+          console.log(`stock`, stockDoc);
+          console.log(`weight`, weightDoc);
 
-      const { centralPrice, centralNumber } = calculateCentralPriceAndNumber(
-        item,
-        oilPriceDoc
+          if (!oilPriceDoc || !stdDoc || !stockDoc || !weightDoc) {
+            throw new AppError("Required data not found", 404);
+          }
+
+          const { centralPrice, centralNumber } =
+            calculateCentralPriceAndNumber(item, oilPriceDoc);
+          
+          delete item.peas
+
+          return {
+            ...item,
+            peaCode: pea.peaCode,
+            quantity: pea.quantity,
+            centralPrice,
+            centralNumber,
+            description: stockDoc.description,
+            distance: oilPriceDoc.distance,
+          };
+        })
       );
 
       return {
         ...item,
-        centralPrice,
-        centralNumber,
-        description: stockDoc.description,
-        distance: oilPriceDoc.distance,
+        peas: processedPeas,
       };
     })
   );
@@ -93,25 +108,25 @@ const createExcelFile = (
   const sheetData = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
   sheetData[4][13] = oilPricePerLiter;
 
-  parcels.forEach((item: any, index: number) => {
-    sheetData.push([
-      index + 1,
-      item.source,
-      item.destination,
-      item.distance,
-      item.peaCode,
-      item.description,
-      item.weight,
-      item.quantity,
-      item.numberOfVehicles[0].number,
-      item.numberOfVehicles[1].number,
-      item.numberOfVehicles[2].number,
-      item.centralPrice,
-      item.centralPrice * item.centralNumber,
-      "'นับถัดจากใบสั่งจ้าง",
-      item.contract,
-      item.distance?.value > 800 ? "4" : "3",
-    ]);
+  parcels.forEach((parcel: any, parcelIndex: number) => {
+    parcel.peas.forEach((pea: any, peaIndex: number) => {
+      sheetData.push([
+        `${parcelIndex + 1}.${peaIndex + 1}`, // Unique index for each pea within the parcel
+        parcel.source,
+        parcel.destination,
+        pea.distance,
+        pea.peaCode,
+        pea.description,
+        parcel.weight, // Assuming weight is for the entire parcel, adjust if different for each pea
+        pea.quantity, // Assuming quantity is for the entire parcel, adjust if different for each pea
+        pea.centralNumber, // Number of vehicles for this pea"", // Adjust based on number of vehicles, if needed"", // Adjust based on number of vehicles, if needed
+        pea.centralPrice,
+        pea.centralPrice * pea.centralNumber,
+        "'นับถัดจากใบสั่งจ้าง", // Adjust if needed
+        parcel.contract, // Assuming contract is for the entire parcel
+        pea.distance?.value > 800 ? "4" : "3", // Assuming distance check is for each pea
+      ]);
+    });
   });
 
   const updatedSheet = xlsx.utils.aoa_to_sheet(sheetData);
@@ -219,6 +234,7 @@ export const createPlanning = async (
     const imgObj = (await uploadToS3(originalname, buffer, "planning")) as any;
 
     planning.xlsxFilename = imgObj.url;
+
     await planning.updateOne({
       parcels: updatedParcels,
       xlsxFilename: imgObj.key,
